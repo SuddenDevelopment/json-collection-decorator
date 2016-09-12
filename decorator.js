@@ -49,9 +49,18 @@ this.decorate = function(arrData){
 		varOld.push(varVal);
 		_.set(objData,strPath,varOld);
 	}
-	objActions.add = function(objData,strPath,varVal){ _.set(objData,strPath,varVal); }
-	objActions.prepend = function(objData,strPath,varVal){ _.set(objData,strPath,varVal); }
-	objActions.append = function(objData,strPath,varVal){ _.set(objData,strPath,varVal); }
+	objActions.add = function(objData,strPath,varVal){ 
+		var intOld = parseInt(_.get(objData,strPath));
+		_.set(objData,strPath,intOld+varVal); 
+	}
+	objActions.prepend = function(objData,strPath,varVal){ 
+		var strOld = _.get(objData,strPath);
+		_.set(objData,strPath,varVal+strOld); 
+	}
+	objActions.append = function(objData,strPath,varVal){ 
+		var strOld = _.get(objData,strPath);
+		_.set(objData,strPath,strOld+varVal); 
+	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
