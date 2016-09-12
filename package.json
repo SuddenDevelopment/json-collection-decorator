@@ -1,0 +1,35 @@
+{
+  "name": "json-collection-decorator",
+  "description": "filter and decorate a collection of json objects based on some defined rules",
+  "homepage": "https://github.com/SuddenDevelopment/json-collection-decorator",
+  "version": "1.0.0",
+  "contributors": [
+    "Anthony Aragues <anthony.aragues@gmail.com>"
+  ],
+  "dependencies": {
+    "suddenutils": "^1.0.0"
+  },
+  "main": "decorator.js",
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^4.4.2"
+  },
+  "scripts": {
+    "test": "mocha -R spec ./test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuddenDevelopment/json-collection-decorator.git"
+  },
+  "keywords": [
+    "json",
+    "decorator",
+    "filter"
+  ],
+  "author": "Anthony Aragues <anthony.aragues@gmail.com> (http://suddendevelopment.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SuddenDevelopment/json-collection-decorator/issues"
+  },
+  "readmeFilename": "README.md"
+}
