@@ -6,6 +6,7 @@ efficiently run a collection of records by conditions and decorate them when con
 2. collection of jsonobjects
 
 '''javascript
+
 var objConfig={
 	 filter:{}
 	,decorate:[
