@@ -5,7 +5,7 @@ efficiently run a collection of records by conditions and decorate them when con
 1. config object
 2. collection of jsonobjects
 
-'''javascript
+```javascript
 
 var objConfig={
 	 filter:[
@@ -23,8 +23,7 @@ var objConfig={
 }
 
 arrResults = decorate(objConfig,arrCollection);
-
-'''
+```
 
 # Action Parameters
 
@@ -52,3 +51,4 @@ arrResults = decorate(objConfig,arrCollection);
 5. in : found in a string or simple array
 6. ni : opposite of in
 7. has : more than a count of occurences of in
+
