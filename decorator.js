@@ -8,6 +8,7 @@ this.config=objConfig;
 
 var self=this;
 this.decorate = function(arrData){
+	if(arrData.constructor !== Array){ arrData=[arrData]; }
 	var arrResponse=[];
 	//loop through the collection
 	//console.log(self.config);
@@ -60,6 +61,9 @@ this.decorate = function(arrData){
 	objActions.append = function(objData,strPath,varVal){ 
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,strOld+varVal); 
+	}
+	objActions.remove = function(objData,strPath,varVal){ 
+		_.del(objData,strPath); 
 	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};

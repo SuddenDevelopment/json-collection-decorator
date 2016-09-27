@@ -6,7 +6,7 @@ describe('simplest test', function () {
  it('filter a value, set a value', function (done) {
     //test
     var objConfig={
-    	filters:[{path:'name',op:'ne',val:'anthony'}]
+    	filters:[{path:'name',op:'eq',val:'anthony'}]
     	,decorate:[{
     		find:{path:'name',op:'eq',val:'sam'}
     		,do:{path:'hobby',act:'set',val:'cats'}
