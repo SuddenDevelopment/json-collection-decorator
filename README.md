@@ -57,3 +57,6 @@ arrResults = decorate(objConfig,arrCollection);
 7. add: numeric value to add, this will also convert existing values to a number
 8. append: string to append
 9. prepend: string to append
+10. remove: remove the field from the object
+12. prioritize: adds 1 to existings _priority, unless a different number is specified
+13: tag: adds a tag to the stack

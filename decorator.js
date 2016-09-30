@@ -65,6 +65,14 @@ this.decorate = function(arrData){
 	objActions.remove = function(objData,strPath,varVal){ 
 		_.del(objData,strPath); 
 	}
+	objActions.prioritize = function(objData,intVal){ 
+		if(typeof intval === 'undefined'){var intVal=1;}
+		if(!objData.hasOwnProperty('_priority')){ obj._priority=parseInt(intVal); }
+	}
+	objActions.tag = function(objData,varVal){ 
+		if(!objData.hasOwnProperty('_tags')){ obj._tags=[varVal]; }
+		else{ obj._tags.push(varVal); }
+	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
