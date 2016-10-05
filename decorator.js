@@ -14,14 +14,15 @@ this.decorate = function(arrData){
 	//console.log(self.config);
 	_.for(arrData,function(vData,kData){
 		//look at the filters
+		var fKeep=true;
 		if(self.config.hasOwnProperty('filters') && self.config.filters.length > 0){
-			var fKeep=true;
 			//loop through the filters
 			_.for(self.config.filters,function(vFilter,kFilter){
 				if(fKeep===true){
 					fKeep=objOperands[vFilter.op](vFilter.path,vFilter.val,vData,{});
 				}else{}
 			});
+		}
 			//made it past the filter, now decorate
 			if(fKeep===true){
 				_.for(self.config.decorate,function(vDeco,kDeco){
@@ -36,7 +37,6 @@ this.decorate = function(arrData){
 				//all decorations complete, add to the return collection
 				arrResponse.push(vData);
 			}
-		}
 	});
 	return arrResponse;
 }
