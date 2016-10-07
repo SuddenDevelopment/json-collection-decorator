@@ -62,3 +62,4 @@ arrResults = decorate(objConfig,arrCollection);
 10. rename: rename a field of an object
 12. prioritize: adds 1 to existings _priority, unless a different number is specified
 13: tag: adds a tag to the stack
+
