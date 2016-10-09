@@ -19,12 +19,13 @@ this.decorate = function(arrData){
 			//loop through the filters
 			_.for(self.config.filters,function(vFilter,kFilter){
 				if(fKeep===true){
+					if(!vFilter.hasOwnProperty('val')){vFilter.val='';}
 					fKeep=objOperands[vFilter.op](vFilter.path,vFilter.val,vData,{});
 				}else{}
 			});
 		}
 			//made it past the filter, now decorate
-			if(fKeep===true){
+			if(fKeep===true && self.config.hasOwnProperty('decorate')){
 				_.for(self.config.decorate,function(vDeco,kDeco){
 					var fDeco=false;
 					//check the condition
@@ -34,9 +35,11 @@ this.decorate = function(arrData){
 						objActions[vDeco.do.act](vData,vDeco.do.path,vDeco.do.val);
 					}
 				});
-				//all decorations complete, add to the return collection
-				arrResponse.push(vData);
 			}
+		if(fKeep===true){
+			//all decorations complete, add to the return collection
+			arrResponse.push(vData);
+		}
 	});
 	return arrResponse;
 }
@@ -80,13 +83,13 @@ this.decorate = function(arrData){
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; }
-	objOperands.empty = function(strPath,objStat){ 
+	objOperands.empty = function(strPath,strNeedle,objStat,objOptions){ 
 		var varVal = _.get(objStat,strPath);
 		if(varVal === '' || varVal === null ){ return true;  }
 	}
-	objOperands.data = function(strPath,objStat){ 
+	objOperands.data = function(strPath,strNeedle,objStat,objOptions){ 
 		var varVal = _.get(objStat,strPath);
-		if(varVal !== '' || varVal !== null ){ return true;  }
+		if(varVal !== '' && varVal !== null ){ return true;}
 	}
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
 		var intCount = 0; var v=_.get(objStat,strPath);
