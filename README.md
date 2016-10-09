@@ -50,6 +50,8 @@ arrResults = decorate(objConfig,arrCollection);
 6. ni : opposite of in
 7. has : more than a count of occurences of in
 8. any: doesnt matter
+9. empty: no data, null, or undefined
+10. data: populated field
 
 # Actions
 

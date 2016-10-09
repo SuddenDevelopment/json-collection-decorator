@@ -80,6 +80,14 @@ this.decorate = function(arrData){
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; }
+	objOperands.empty = function(strPath,objStat){ 
+		var varVal = _.get(objStat,strPath);
+		if(varVal === '' || varVal === null ){ return true;  }
+	}
+	objOperands.data = function(strPath,objStat){ 
+		var varVal = _.get(objStat,strPath);
+		if(varVal !== '' || varVal !== null ){ return true;  }
+	}
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
 		var intCount = 0; var v=_.get(objStat,strPath);
 		if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objStat,objOptions.path2); }
@@ -129,6 +137,7 @@ this.decorate = function(arrData){
 		objOptions.reverse=true;
 		return objOperands.eq(strPath,varValue,objStat,objOptions); 
 	}
+
 	//greater than
 	objOperands.gt =function(strPath,varValue,objStat,objOptions){
 		if(objOptions && objOptions.hasOwnProperty('path2')){ varValue=_.get(objStat,objOptions.path2); }
