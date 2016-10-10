@@ -20,7 +20,10 @@ this.decorate = function(arrData){
 			_.for(self.config.filters,function(vFilter,kFilter){
 				if(fKeep===true){
 					if(!vFilter.hasOwnProperty('val')){vFilter.val='';}
-					fKeep=objOperands[vFilter.op](vFilter.path,vFilter.val,vData,{});
+					//quick value check for security and cleanliness
+					if(objOperands.hasOwnProperty(vFilter.op)){
+						fKeep=objOperands[vFilter.op](vFilter.path,vFilter.val,vData,{});
+					}
 				}else{}
 			});
 		}
@@ -29,10 +32,16 @@ this.decorate = function(arrData){
 				_.for(self.config.decorate,function(vDeco,kDeco){
 					var fDeco=false;
 					//check the condition
-					fDeco=objOperands[vDeco.find.op](vDeco.find.path,vDeco.find.val,vData,{});
+					if(objOperands.hasOwnProperty(vDeco.find.op)){
+						fDeco=objOperands[vDeco.find.op](vDeco.find.path,vDeco.find.val,vData,{});
+					}
 					//it passed the condition, perform the action.
 					if(fDeco===true){
-						objActions[vDeco.do.act](vData,vDeco.do.path,vDeco.do.val);
+						if(!vDeco.hasOwnProperty('path')){vDeco.path='';}
+						if(!vDeco.hasOwnProperty('val')){vDeco.val='';}
+						if(objActions.hasOwnProperty(vDeco.do.act)){
+							vData = objActions[vDeco.do.act](vData,vDeco.do.path,vDeco.do.val);
+						}
 					}
 				});
 			}
@@ -45,40 +54,61 @@ this.decorate = function(arrData){
 }
 //----====|| ACTIONS ||====----\\
 	var objActions={};
-	objActions.set = function(objData,strPath,varVal){ _.set(objData,strPath,varVal); }
+	objActions.set = function(objData,strPath,varVal){ 
+		_.set(objData,strPath,varVal); 
+		return objData;
+	}
 	objActions.stack = function(objData,strPath,varVal){
 		var varOld = _.get(objData,strPath);
 		//stack is for arrays, if it WAS a string it's an array now :)
 		if(varOld.constructor !== Array){ varOld=[varOld]; }
 		varOld.push(varVal);
 		_.set(objData,strPath,varOld);
+		return objData;
 	}
 	objActions.add = function(objData,strPath,varVal){ 
 		var intOld = parseInt(_.get(objData,strPath));
 		_.set(objData,strPath,intOld+varVal); 
+		return objData;
 	}
 	objActions.prepend = function(objData,strPath,varVal){ 
 		var strOld = _.get(objData,strPath);
-		_.set(objData,strPath,varVal+strOld); 
+		_.set(objData,strPath,varVal+strOld);
+		return objData;
 	}
 	objActions.append = function(objData,strPath,varVal){ 
 		var strOld = _.get(objData,strPath);
-		_.set(objData,strPath,strOld+varVal); 
+		_.set(objData,strPath,strOld+varVal);
+		return objData;
 	}
 	objActions.remove = function(objData,strPath,varVal){ 
-		_.del(objData,strPath); 
+		_.del(objData,strPath);
+		return objData;
 	}
 	objActions.rename = function(objData,strPath,varVal){ 
 		_.set(objData,varVal,_.get(objData,strPath));
-		_.del(objData,strPath); 
+		_.del(objData,strPath);
+		return objData;
 	}
-	objActions.prioritize = function(objData,intVal){ 
+	objActions.prioritize = function(objData,strPath,intVal){ 
 		if(typeof intval === 'undefined'){var intVal=1;}
 		if(!objData.hasOwnProperty('_priority')){ obj._priority=parseInt(intVal); }
+		return objData;
 	}
-	objActions.tag = function(objData,varVal){ 
+	objActions.tag = function(objData,strPath,varVal){ 
 		if(!objData.hasOwnProperty('_tags')){ obj._tags=[varVal]; }
 		else{ obj._tags.push(varVal); }
+		return objData;
+	}
+	objActions.focus = function(objData,arrPath,varVal){
+		//if it's not listed in the arrPath array, don't keep it.
+		//TODO quickly and dynamically determine if it's faster to create a new object or remove unwanted fields
+		var newObject = {};
+		if(arrPath.constructor !== Array){ arrPath=[arrPath]; }
+		_.for(arrPath,function(strPath,k){
+			_.set(newObject,strPath,_.get(objData,strPath));
+		});
+		return newObject;
 	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
