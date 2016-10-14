@@ -1,13 +1,13 @@
-'use strict';
 //only do the require thing in node, browser needs to include files individually
 if (typeof window == 'undefined'){var utils = require('suddenutils');}
-var _ = new utils;
+var _ = new utils();
 var Decorator = function(objConfig){
 //validate and clean config
 this.config=objConfig;
 
 var self=this;
 this.decorate = function(arrData){
+	'use strict';
 	if(arrData.constructor !== Array){ arrData=[arrData]; }
 	var arrResponse=[];
 	//loop through the collection
@@ -51,13 +51,13 @@ this.decorate = function(arrData){
 		}
 	});
 	return arrResponse;
-}
+};
 //----====|| ACTIONS ||====----\\
 	var objActions={};
 	objActions.set = function(objData,strPath,varVal){ 
 		_.set(objData,strPath,varVal); 
 		return objData;
-	}
+	};
 	objActions.stack = function(objData,strPath,varVal){
 		var varOld = _.get(objData,strPath);
 		//stack is for arrays, if it WAS a string it's an array now :)
@@ -65,41 +65,41 @@ this.decorate = function(arrData){
 		varOld.push(varVal);
 		_.set(objData,strPath,varOld);
 		return objData;
-	}
+	};
 	objActions.add = function(objData,strPath,varVal){ 
 		var intOld = parseInt(_.get(objData,strPath));
 		_.set(objData,strPath,intOld+varVal); 
 		return objData;
-	}
+	};
 	objActions.prepend = function(objData,strPath,varVal){ 
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,varVal+strOld);
 		return objData;
-	}
+	};
 	objActions.append = function(objData,strPath,varVal){ 
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,strOld+varVal);
 		return objData;
-	}
+	};
 	objActions.remove = function(objData,strPath,varVal){ 
 		_.del(objData,strPath);
 		return objData;
-	}
+	};
 	objActions.rename = function(objData,strPath,varVal){ 
 		_.set(objData,varVal,_.get(objData,strPath));
 		_.del(objData,strPath);
 		return objData;
-	}
+	};
 	objActions.prioritize = function(objData,strPath,intVal){ 
-		if(typeof intval === 'undefined'){var intVal=1;}
+		if(typeof intval === 'undefined'){intVal=1;}
 		if(!objData.hasOwnProperty('_priority')){ obj._priority=parseInt(intVal); }
 		return objData;
-	}
+	};
 	objActions.tag = function(objData,strPath,varVal){ 
 		if(!objData.hasOwnProperty('_tags')){ obj._tags=[varVal]; }
 		else{ obj._tags.push(varVal); }
 		return objData;
-	}
+	};
 	objActions.focus = function(objData,arrPath,varVal){
 		//if it's not listed in the arrPath array, don't keep it.
 		//TODO quickly and dynamically determine if it's faster to create a new object or remove unwanted fields
@@ -109,22 +109,22 @@ this.decorate = function(arrData){
 			_.set(newObject,strPath,_.get(objData,strPath));
 		});
 		return newObject;
-	}
+	};
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
-	objOperands.any = function(){ return true; }
+	objOperands.any = function(){ return true; };
 	objOperands.empty = function(strPath,strNeedle,objStat,objOptions){ 
 		var varVal = _.get(objStat,strPath);
 		if(varVal === '' || varVal === null ){ return true;  }
-	}
+	};
 	objOperands.data = function(strPath,strNeedle,objStat,objOptions){ 
 		var varVal = _.get(objStat,strPath);
 		if(varVal !== '' && varVal !== null ){ return true;}
-	}
+	};
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
 		var intCount = 0; var v=_.get(objStat,strPath);
 		if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objStat,objOptions.path2); }
-		if(v.constructor === Array){v=v.join()}
+		if(v.constructor === Array){v=v.join();}
 		intCount = _.strCount(strNeedle,v);
 		if(objOptions.reverse === true){  
 			//filter out objects that match
@@ -138,7 +138,7 @@ this.decorate = function(arrData){
 		var intCount = 0; var v=_.get(objStat,strPath);
 		if(v){
 			if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objStat,objOptions.path2); }
-			if(v.constructor === Array){v=v.join()}
+			if(v.constructor === Array){v=v.join();}
 			intCount = _.strCount(strNeedle,v);
 			if(objOptions.reverse === true){  
 				//filter out objects that match
@@ -165,11 +165,11 @@ this.decorate = function(arrData){
 	objOperands.ni = function(strPath,varValue,objStat,objOptions){ 
 		objOptions.reverse=true;
 		return objOperands.in(strPath,varValue,objStat,objOptions); 
-	}
+	};
 	objOperands.ne = function(strPath,varValue,objStat,objOptions){ 
 		objOptions.reverse=true;
 		return objOperands.eq(strPath,varValue,objStat,objOptions); 
-	}
+	};
 
 	//greater than
 	objOperands.gt =function(strPath,varValue,objStat,objOptions){
@@ -186,5 +186,5 @@ this.decorate = function(arrData){
 		}
 	};
 
-}
+};
 if (typeof module !== 'undefined' && module.exports){module.exports = Decorator;}
