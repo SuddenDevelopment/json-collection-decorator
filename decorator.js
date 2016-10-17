@@ -66,6 +66,20 @@ this.decorate = function(arrData){
 		_.set(objData,strPath,varOld);
 		return objData;
 	};
+	objActions.unstack = function(objData,strPath,varVal){
+		var varOld = _.get(objData,strPath);
+		var intIndex = -1;
+		//stack is for arrays, if it WAS a string it's an array now :)
+		if(varOld.constructor !== Array){ _.set(objData,strPath,[]); }
+		else{
+			//find matching value
+			_.for(varOld,function(v,k){ if(v===varVal){ intIndex=k; } });
+			//remove it from the array
+			if(intIndex !== -1){ varOld.splice(strCompKey,1); }
+			_.set(objData,strPath,varOld);
+			return objData;
+		}
+	};
 	objActions.add = function(objData,strPath,varVal){ 
 		var intOld = parseInt(_.get(objData,strPath));
 		_.set(objData,strPath,intOld+varVal); 
@@ -93,11 +107,6 @@ this.decorate = function(arrData){
 	objActions.prioritize = function(objData,strPath,intVal){ 
 		if(typeof intval === 'undefined'){intVal=1;}
 		if(!objData.hasOwnProperty('_priority')){ obj._priority=parseInt(intVal); }
-		return objData;
-	};
-	objActions.tag = function(objData,strPath,varVal){ 
-		if(!objData.hasOwnProperty('_tags')){ obj._tags=[varVal]; }
-		else{ obj._tags.push(varVal); }
 		return objData;
 	};
 	objActions.focus = function(objData,arrPath,varVal){
