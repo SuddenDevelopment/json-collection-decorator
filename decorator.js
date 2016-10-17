@@ -10,6 +10,7 @@ this.decorate = function(arrData){
 	'use strict';
 	if(arrData.constructor !== Array){ arrData=[arrData]; }
 	var arrResponse=[];
+	var objOptions ={}
 	//loop through the collection
 	//console.log(self.config);
 	_.for(arrData,function(vData,kData){
@@ -39,9 +40,10 @@ this.decorate = function(arrData){
 						_.for(vDeco.find,function(vFind,kFind){
 						//console.log(vFind);
 						//check the condition
-						if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){
-							if(objOperands[vFind.op](vFind.path,vFind.val,vData,{}) === true){ intDeco--; }
-						}
+							objOptions={};
+							if(vFind.hasOwnProperty('path2')){objOptions.path2=vFind.path2;}
+							if(vFind.hasOwnProperty('val2')){objOptions.val2=vFind.val2;}
+							if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){ if(objOperands[vFind.op](vFind.path,vFind.val,vData,objOptions) === true){ intDeco--; }}
 						});
 						if(intDeco===0){
 							//it passed the condition, perform ALL the actions.
@@ -155,9 +157,10 @@ this.decorate = function(arrData){
 		}
 	};
 	objOperands.has = function(strPath,strNeedle,objStat,objOptions){ 
+		
 		var intCount = 0; var v=_.get(objStat,strPath);
 		if(v){
-			if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objStat,objOptions.path2); }
+			if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objOptions); }
 			if(v.constructor === Array){v=v.join();}
 			intCount = _.strCount(strNeedle,v);
 			if(objOptions.reverse === true){  
