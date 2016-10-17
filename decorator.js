@@ -30,25 +30,29 @@ this.decorate = function(arrData){
 			//made it past the filter, now decorate
 			if(fKeep===true && self.config.hasOwnProperty('decorate')){
 				_.for(self.config.decorate,function(vDeco,kDeco){
+					//console.log(vDeco);
 					//in case they aren;t arrays lets make them consistent
-					if(vDeco.find.constructor !== Array){ vDeco=[vDeco]; }
-					if(vDeco.find.constructor !== Array){ vDeco=[vDeco]; }
+					if(vDeco.find.constructor !== Array){ vDeco.find=[vDeco.find]; }
+					if(vDeco.do.constructor !== Array){ vDeco.do=[vDeco.do]; }
 					var intDeco=vDeco.find.length;
-					_.for(vDeco.find,function(vFind,kFind){
+					if(intDeco > 0){
+						_.for(vDeco.find,function(vFind,kFind){
+						//console.log(vFind);
 						//check the condition
-						if(objOperands.hasOwnProperty(vFind.op)){
+						if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){
 							if(objOperands[vFind.op](vFind.path,vFind.val,vData,{}) === true){ intDeco--; }
 						}
-					});
-					if(intDeco===0){
-						//it passed the condition, perform ALL the actions.
-						_.for(vDeco.do,function(vDo,kDo){
-							if(!vDo.hasOwnProperty('path')){vDo.path='';}
-							if(!vDo.hasOwnProperty('val')){vDo.val='';}
-							if(objActions.hasOwnProperty(vDo.act)){
-								vData = objActions[vDo.act](vData,vDo.path,vDo.val);
-							}
 						});
+						if(intDeco===0){
+							//it passed the condition, perform ALL the actions.
+							_.for(vDeco.do,function(vDo,kDo){
+								if(!vDo.hasOwnProperty('path')){vDo.path='';}
+								if(!vDo.hasOwnProperty('val')){vDo.val='';}
+								if(objActions.hasOwnProperty(vDo.act)){
+									vData = objActions[vDo.act](vData,vDo.path,vDo.val);
+								}
+							});
+						}
 					}
 				});
 			}
