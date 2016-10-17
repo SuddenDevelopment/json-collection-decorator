@@ -68,4 +68,5 @@ multiple conditions in an array are treated as an AND, they ALL must match. OR c
 10. remove: remove the field from the object
 10. rename: rename a field of an object
 12. prioritize: adds 1 to existings _priority, unless a different number is specified
+13. focus: array of paths to keep, remove all others ['path1', 'path2.child']
 
