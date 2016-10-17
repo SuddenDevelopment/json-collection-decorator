@@ -13,8 +13,8 @@ var objConfig={
 	 ]
 	,decorate:[
 		{
-			find:{ path:"path.to.key",op:"eq",val:"value to match" }
-			,do:{ path:"path.to.key",act:"set",val:"value to set" }
+			find:[{ path:"path.to.key",op:"eq",val:"value to match" }]
+			,do:[{ path:"path.to.key",act:"set",val:"value to set" }]
 		},{
 			,find:{ path:"path.to.key",op:"eq",val:"value to match" }
 			,do:{path:"path.to.key",act:"stack",val:"value to add to array" }
@@ -24,6 +24,10 @@ var objConfig={
 
 arrResults = decorate(objConfig,arrCollection);
 ```
+
+#multiple matching conditions
+
+multiple conditions in an array are treated as an AND, they ALL must match. OR conditions can be listed as a separate line. Multiple actions are ALL executed
 
 # Action Parameters
 
