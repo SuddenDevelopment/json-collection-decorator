@@ -1,7 +1,8 @@
 //only do the require thing in node, browser needs to include files individually
-if (typeof window == 'undefined'){var utils = require('suddenutils');}
+if (typeof window === 'undefined'){var utils = require('suddenutils');}
 var _ = new utils();
 var Decorator = function(objConfig){
+if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
 //validate and clean config
 this.config=objConfig;
 
@@ -10,7 +11,7 @@ this.decorate = function(arrData){
 	'use strict';
 	if(arrData.constructor !== Array){ arrData=[arrData]; }
 	var arrResponse=[];
-	var objOptions ={}
+	var objOptions ={};
 	//loop through the collection
 	//console.log(self.config);
 	_.for(arrData,function(vData,kData){
@@ -29,7 +30,7 @@ this.decorate = function(arrData){
 			});
 		}
 			//made it past the filter, now decorate
-			if(fKeep===true && self.config.hasOwnProperty('decorate')){
+			if(fKeep===true && self.config.hasOwnProperty('decorate') && self.config.decorate.length > 0){
 				_.for(self.config.decorate,function(vDeco,kDeco){
 					//console.log(vDeco);
 					//in case they aren;t arrays lets make them consistent
@@ -65,6 +66,9 @@ this.decorate = function(arrData){
 	});
 	return arrResponse;
 };
+
+this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
+
 //----====|| ACTIONS ||====----\\
 	var objActions={};
 	objActions.set = function(objData,strPath,varVal){ 
@@ -157,10 +161,10 @@ this.decorate = function(arrData){
 		}
 	};
 	objOperands.has = function(strPath,strNeedle,objStat,objOptions){ 
-		
+		//{path:"user",op:"has",val:".",val2:3}
 		var intCount = 0; var v=_.get(objStat,strPath);
 		if(v){
-			if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objOptions); }
+			if(objOptions && objOptions.hasOwnProperty('path2')){ strNeedle=_.get(objOptions.path2); }
 			if(v.constructor === Array){v=v.join();}
 			intCount = _.strCount(strNeedle,v);
 			if(objOptions.reverse === true){  
