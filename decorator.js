@@ -136,6 +136,15 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		});
 		return newObject;
 	};
+	objActions.implode = function(objData,strPath,varVal){ 
+		if(objData[strPath].constructor === Array){ objData[strPath].toString(); }
+		return objData;
+	};
+	objActions.explode = function(objData,strPath,varVal){ 
+		if(varVal===''){varVal=',';}
+		objData[strPath] = objData[strPath].split(varVal); 
+		return objData;
+	};
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; };
