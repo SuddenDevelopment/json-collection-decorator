@@ -77,6 +77,7 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 	};
 	objActions.stack = function(objData,strPath,varVal){
 		var varOld = _.get(objData,strPath);
+		if(varOld===null){varOld=[];}
 		//stack is for arrays, if it WAS a string it's an array now :)
 		if(varOld.constructor !== Array){ varOld=[varOld]; }
 		varOld.push(varVal);
