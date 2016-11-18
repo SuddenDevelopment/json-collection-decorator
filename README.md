@@ -56,9 +56,11 @@ multiple conditions in an array are treated as an AND, they ALL must match. OR c
 8. any: doesnt matter
 9. empty: no data, null, or undefined
 10. data: populated field
+11. find: run a nested comparison, comparison will be in val:
 
 # Actions
 
+1. log: console.log what was found
 5. set: static value to set
 6. stack: static value to add to an array
 7. unstack: remove an exact value from an array
@@ -71,4 +73,6 @@ multiple conditions in an array are treated as an AND, they ALL must match. OR c
 13. focus: array of paths to keep, remove all others ['path1', 'path2.child']
 14. implode: convert an array into a comma separated string
 15. explode: convert a value separated string into an array
+16. copy: get the value from path deinfed in val: copy it to path:
+17. findCopy same as copy but has 2 paths in val to find items in an array {path:'_image',act:'findCopy',val:{path:'preview.images',path2:'source.url'}}
 

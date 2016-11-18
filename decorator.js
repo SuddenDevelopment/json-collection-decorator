@@ -71,7 +71,10 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 
 //----====|| ACTIONS ||====----\\
 	var objActions={};
-	objActions.set = function(objData,strPath,varVal){ 
+	objActions.log = function(objData,strPath,varVal){
+		console.log(objData,strPath,varVal);
+	}
+	objActions.set = function(objData,strPath,varVal){
 		_.set(objData,strPath,varVal); 
 		return objData;
 	};
@@ -98,31 +101,31 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 			return objData;
 		}
 	};
-	objActions.add = function(objData,strPath,varVal){ 
+	objActions.add = function(objData,strPath,varVal){
 		var intOld = parseInt(_.get(objData,strPath));
 		_.set(objData,strPath,intOld+varVal); 
 		return objData;
 	};
-	objActions.prepend = function(objData,strPath,varVal){ 
+	objActions.prepend = function(objData,strPath,varVal){
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,varVal+strOld);
 		return objData;
 	};
-	objActions.append = function(objData,strPath,varVal){ 
+	objActions.append = function(objData,strPath,varVal){
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,strOld+varVal);
 		return objData;
 	};
-	objActions.remove = function(objData,strPath,varVal){ 
+	objActions.remove = function(objData,strPath,varVal){
 		_.del(objData,strPath);
 		return objData;
 	};
-	objActions.rename = function(objData,strPath,varVal){ 
+	objActions.rename = function(objData,strPath,varVal){
 		_.set(objData,varVal,_.get(objData,strPath));
 		_.del(objData,strPath);
 		return objData;
 	};
-	objActions.prioritize = function(objData,strPath,intVal){ 
+	objActions.prioritize = function(objData,strPath,intVal){
 		if(typeof intval === 'undefined'){intVal=1;}
 		if(!objData.hasOwnProperty('_priority')){ obj._priority=parseInt(intVal); }
 		return objData;
@@ -137,25 +140,54 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		});
 		return newObject;
 	};
-	objActions.implode = function(objData,strPath,varVal){ 
+	objActions.implode = function(objData,strPath,varVal){
 		if(objData[strPath].constructor === Array){ objData[strPath].toString(); }
 		return objData;
 	};
-	objActions.explode = function(objData,strPath,varVal){ 
+	objActions.explode = function(objData,strPath,varVal){
 		if(varVal===''){varVal=',';}
 		objData[strPath] = objData[strPath].split(varVal); 
+		return objData;
+	};
+	objActions.copy = function(objData,strPath,varVal){
+		_.set(objData,strPath,_.get(objData,varVal));
+		return objData;
+	};
+	objActions.findCopy = function(objData,strPath,varVal){
+		//get the array mentioned in path
+		var fKeep=false;
+		var arrHaystack = _.get(objData,varVal.path);
+		if(arrHaystack !== null && arrHaystack.constructor === Array && arrHaystack.length > 0){
+			_.for(arrHaystack,function(v,k){
+				if(fKeep===false && fKeep !== null){ fKeep = _.get(v,varVal.path2); }
+			});
+		}
+		_.set(objData,strPath,fKeep);
+		//console.log(fKeep);
 		return objData;
 	};
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; };
-	objOperands.empty = function(strPath,strNeedle,objStat,objOptions){ 
+	objOperands.find=function(strPath,objFind,objStat,objOptions){ 
+		//this expects an array to exist, and the nested comparison to be on objects beneath it
+		var fKeep=false;
+		var arrHaystack = _.get(objStat,strPath);
+		if(arrHaystack !== null && arrHaystack.constructor === Array && arrHaystack.length > 0){
+			_.for(arrHaystack,function(v,k){
+				if(fKeep===false){ fKeep = objOperands[objFind.op](objFind.path,objFind.val,v,{}); }
+			});
+			return fKeep;
+		}
+
+	}
+	objOperands.empty = function(strPath,strNeedle,objStat,objOptions){
 		var varVal = _.get(objStat,strPath);
 		if(varVal === '' || varVal === null ){ return true;  }
 	};
 	objOperands.data = function(strPath,strNeedle,objStat,objOptions){ 
 		var varVal = _.get(objStat,strPath);
-		if(varVal !== '' && varVal !== null ){ return true;}
+		if(varVal !== '' && varVal !== null && typeof varVal !== 'undefined'){ return true; }
 	};
 	objOperands.in = function(strPath,strNeedle,objStat,objOptions){ 
 		var intCount = 0; var v=_.get(objStat,strPath);
