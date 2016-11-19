@@ -1,5 +1,5 @@
 //only do the require thing in node, browser needs to include files individually
-if (typeof window === 'undefined'){var utils = require('suddenutils');}
+if (typeof window === 'undefined'){var utils = require('suddenutils'); var libUrl = require('url-parse');}
 var _ = new utils();
 var Decorator = function(objConfig){
 if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
@@ -164,6 +164,12 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		}
 		_.set(objData,strPath,fKeep);
 		//console.log(fKeep);
+		return objData;
+	};
+	objActions.copy = function(objData,strPath,varVal){
+		//this requires https://github.com/unshiftio/url-parse
+		var objUrl = new libUrl(_get(objData,strPath));
+		_.set(objData,varVal,objUrl);
 		return objData;
 	};
 //----====|| OPERANDS ||====----\\
