@@ -140,6 +140,12 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		});
 		return newObject;
 	};
+	objActions.rand = function(objData,strPath,varVal){
+		//set a random integer value given a min and max from varVal as [min,max]
+		var intRandom = Math.random() * (varVal[1] - varVal[0]) + varVal[0];
+		_.set(objData,strPath,intRandom);
+		return objData;
+	};
 	objActions.implode = function(objData,strPath,varVal){
 		if(objData[strPath].constructor === Array){ objData[strPath].toString(); }
 		return objData;
@@ -147,10 +153,6 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 	objActions.explode = function(objData,strPath,varVal){
 		if(varVal===''){varVal=',';}
 		objData[strPath] = objData[strPath].split(varVal); 
-		return objData;
-	};
-	objActions.copy = function(objData,strPath,varVal){
-		_.set(objData,strPath,_.get(objData,varVal));
 		return objData;
 	};
 	objActions.findCopy = function(objData,strPath,varVal){
