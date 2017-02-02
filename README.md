@@ -75,5 +75,6 @@ multiple conditions in an array are treated as an AND, they ALL must match. OR c
 15. explode: convert a value separated string into an array
 16. copy: get the value from path deinfed in val: copy it to path:
 17. findCopy same as copy but has 2 paths in val to find items in an array {path:'_image',act:'findCopy',val:{path:'preview.images',path2:'source.url'}}
-18. parseUrl: add properties to a destination val: from a parsed path
+18. parseUrl: add properties to a destination val: from a parsed path requires url-parse repo library included
+19: rand: set a random integrer given a min and max {path:,val:[min,max]}
 
