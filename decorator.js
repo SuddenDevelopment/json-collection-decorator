@@ -106,6 +106,10 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		_.set(objData,strPath,intOld+varVal); 
 		return objData;
 	};
+	objActions.copy = function(objData,strPath,varVal){
+		_.set(objData,strPath,_.get(objData,varVal)); 
+		return objData;
+	};
 	objActions.prepend = function(objData,strPath,varVal){
 		var strOld = _.get(objData,strPath);
 		_.set(objData,strPath,varVal+strOld);
