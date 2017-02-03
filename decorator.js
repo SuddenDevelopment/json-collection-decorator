@@ -170,7 +170,7 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 	};
 	objActions.parseUrl = function(objData,strPath,varVal){
 		//this requires https://github.com/unshiftio/url-parse
-		//console.log('hereiam');
+		//console.log(objData,strPath,varVal);
 		var objUrl = new URL(_.get(objData,strPath));
 		_.set(objData,varVal,objUrl);
 		return objData;
@@ -252,16 +252,13 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 	//greater than
 	objOperands.gt =function(strPath,varValue,objStat,objOptions){
 		if(objOptions && objOptions.hasOwnProperty('path2')){ varValue=_.get(objStat,objOptions.path2); }
-		if(objOptions && typeof objOptions.reverse !== 'undefined' && objOptions.reverse === true){
-			if(varValue > _.get(objStat,strPath)){ return true; }else{ return false; }
-		}
+		if(varValue > _.get(objStat,strPath)){ return true; }else{ return false; }
 	};
 	//less than
 	objOperands.lt =function(strPath,varValue,objStat,objOptions){
 		if(objOptions && objOptions.hasOwnProperty('path2')){ varValue=_.get(objStat,objOptions.path2); }
-		if(objOptions && typeof objOptions.reverse !== 'undefined' && objOptions.reverse === true){
-			if(varValue < _.get(objStat,strPath)){ return true; }else{ return false; }
-		}
+		if(varValue < _.get(objStat,strPath)){ return true; }else{ return false; }
+		
 	};
 
 };
