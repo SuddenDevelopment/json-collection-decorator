@@ -7,7 +7,7 @@
     "Anthony Aragues <anthony.aragues@gmail.com>"
   ],
   "dependencies": {
-    "suddenutils": "^1.0.0"
+    "suddenutils": "git+https://github.com/SuddenDevelopment/utils.git"
   },
   "main": "decorator.js",
   "devDependencies": {

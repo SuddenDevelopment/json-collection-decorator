@@ -1,11 +1,8 @@
 //only do the require thing in node, browser needs to include files individually
-if (typeof window === 'undefined'){var utils = require('suddenutils'); var URL = require('url-parse');}
+if (typeof window === 'undefined'){var utils = require('suddenutils'); }
+//var URL = require('url-parse');}
 var _ = new utils();
 var Decorator = function(objConfig){
-if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
-//validate and clean config
-this.config=objConfig;
-
 var self=this;
 this.decorate = function(arrData){
 	'use strict';
@@ -32,25 +29,19 @@ this.decorate = function(arrData){
 			//made it past the filter, now decorate
 			if(fKeep===true && self.config.hasOwnProperty('decorate') && self.config.decorate.length > 0){
 				_.for(self.config.decorate,function(vDeco,kDeco){
-					//console.log(vDeco);
-					//in case they aren;t arrays lets make them consistent
-					if(vDeco.find.constructor !== Array){ vDeco.find=[vDeco.find]; }
-					if(vDeco.do.constructor !== Array){ vDeco.do=[vDeco.do]; }
 					var intDeco=vDeco.find.length;
 					if(intDeco > 0){
 						_.for(vDeco.find,function(vFind,kFind){
 						//console.log(vFind);
 						//check the condition
-							objOptions={};
-							if(vFind.hasOwnProperty('path2')){objOptions.path2=vFind.path2;}
-							if(vFind.hasOwnProperty('val2')){objOptions.val2=vFind.val2;}
-							if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){ if(objOperands[vFind.op](vFind.path,vFind.val,vData,objOptions) === true){ intDeco--; }}
+							if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){ 
+								if(objOperands[vFind.op](vFind.path,vFind.val,vData,{"path2":vFind.path2,"val2":vFind.val2}) === true)
+									{ intDeco--; }
+							}
 						});
 						if(intDeco===0){
 							//it passed the condition, perform ALL the actions.
 							_.for(vDeco.do,function(vDo,kDo){
-								if(!vDo.hasOwnProperty('path')){vDo.path='';}
-								if(!vDo.hasOwnProperty('val')){vDo.val='';}
 								if(objActions.hasOwnProperty(vDo.act)){
 									vData = objActions[vDo.act](vData,vDo.path,vDo.val);
 								}
@@ -67,7 +58,91 @@ this.decorate = function(arrData){
 	return arrResponse;
 };
 
-this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
+//----====|| Get Options ||====----\\
+this.fnReturnOptions=function(objConfig){
+	/*
+	this object is a subset of what is in suddenschema, it has a lot more values that can be ignored.
+	data types come from the library datatypetester https://github.com/SuddenDevelopment/dataTypeTester
+	{
+		 typ: "string"
+		,dataTypes:["ip"]
+		,min: 15
+		,max: 15
+	}
+	*/
+	//objConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
+	//the more data returned the narrower the results can be
+	var objResults={
+		 "ops":[]
+		,"acts":[]
+	};
+	//populate the operands that make sense
+
+	//populate the actions that make sense
+
+	//for now return ALL
+	objResults.ops=objOperands.keys;
+	objResults.acts=objActions.keys;
+
+	return objResults;
+};
+//----====|| Validate and Update Config ||====----\\
+this.fnUpdateConfig=function(objConfig){ 
+	//console.log('fnUpdateConfig',objConfig);
+	//consistent format
+	if(objConfig.filters.constructor !== Array){ objConfig.filters=[objConfig.filters]; }
+	if(objConfig.decorate.constructor !== Array){ objConfig.decorate=[objConfig.decorate]; }
+	var fOk=true;
+	//check the filters
+	for(var i=0; i<objConfig.filters.length;i++){
+		if(fOk===true){ fOk = fnValidFilter(objConfig.filters[i]); }
+	}
+	//check the decorators
+	for(var i=0; i<objConfig.decorate.length;i++){
+		//set the decorator parts to arrays
+		if(objConfig.decorate[i].find.constructor !== Array){ objConfig.decorate[i].find=[objConfig.decorate[i].find]; }
+		if(objConfig.decorate[i].do.constructor !== Array){ objConfig.decorate[i].do=[objConfig.decorate[i].do]; }
+		//console.log(objConfig.decorate[i].find,objConfig.decorate[i].do);
+		//set defaults
+		for(var ii=0;ii<objConfig.decorate[i].do.length;ii++){
+			if(typeof objConfig.decorate[i].do[ii].path === 'undefined'){objConfig.decorate[i].do[ii].path='';}
+			if(typeof objConfig.decorate[i].do[ii].val === 'undefined'){objConfig.decorate[i].do[ii].val='';}
+		}
+		if(fOk===true){ fOk = fnValidDecorator(objConfig.decorate[i]); }
+	}
+	if(fOk===true){ 
+		self.config=objConfig;
+		return true; 
+	}
+	else{ return false; }
+}
+
+var fnValidFilter=function(objFilter){
+	//dont worry about the keys, if it doesnt exist, it doesnt apply. no big deal
+	//check Operands
+	return fnValidOperand(objFilter.op);
+};
+var fnValidDecorator=function(objDecorator){
+	var fOk=true;
+	//dont worry about the key/field existing
+	//each decorator can have multiple filters ".find" and multiple actions ".do"
+	//make sure the filter operands and values check out
+	for(var i=0;i<objDecorator.find.length;i++){
+		if(fOk===true){
+			fOk=fnValidFilter(objDecorator.find[i]);
+		}
+	}
+	//make sure the actions mentioned exist and any values given to actions are valid
+	for(var i=0;i<objDecorator.do;i++){
+		if(fOk===true && typeof objActions[objDecorator.do[i].act] !== 'undefined')
+			{ return true; }else{ return false; }
+	}
+	return fOk;
+};
+
+var fnValidOperand=function(strOperand,strValue){
+	if(typeof objOperands[strOperand] !== 'undefined'){ return true; }else{ return false; }
+};
 
 //----====|| ACTIONS ||====----\\
 	var objActions={};
@@ -75,6 +150,7 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		console.log(objData,strPath,varVal);
 	}
 	objActions.set = function(objData,strPath,varVal){
+		console.log('set: ',objData,strPath,varVal);
 		_.set(objData,strPath,varVal); 
 		return objData;
 	};
@@ -172,13 +248,17 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		//console.log(fKeep);
 		return objData;
 	};
-	objActions.parseUrl = function(objData,strPath,varVal){
+//----====|| DATA TYPE ACTIONS ||====----\\
+objTypeActions.url.parse = function(objData,strPath,varVal){
 		//this requires https://github.com/unshiftio/url-parse
 		//console.log(objData,strPath,varVal);
 		var objUrl = new URL(_.get(objData,strPath));
 		_.set(objData,varVal,objUrl);
 		return objData;
 	};
+objTypeActions.ip.bigint=function(){
+	//convert a string ip to a bigint
+}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; };
@@ -234,7 +314,7 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 	};
 	objOperands.eq = function(strPath,varValue,objStat,objOptions){
 		//console.log(strPath,varValue,objStat,objOptions);
-		if(objOptions && objOptions.hasOwnProperty('path2')){ varValue=_.get(objStat,objOptions.path2); }
+		if(typeof objOptions.path2 !== 'undefined'){  varValue=_.get(objStat,objOptions.path2); }
 		if(objOptions && typeof objOptions.reverse !== 'undefined' && objOptions.reverse === true){
 			//filter out what does match
 			if(varValue !== _.get(objStat,strPath)){ return true; }else{ return false; }
@@ -265,5 +345,9 @@ this.fnUpdateConfig=function(objConfig){ self.config=objConfig; }
 		
 	};
 
+	//----====|| INIT ||====----\\
+	if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
+	//validate and clean config
+	self.fnUpdateConfig(objConfig);
 };
 if (typeof module !== 'undefined' && module.exports){module.exports = Decorator;}
