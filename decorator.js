@@ -27,28 +27,33 @@ this.decorate = function(arrData){
 			});
 		}
 			//made it past the filter, now decorate
-			if(fKeep===true && self.config.hasOwnProperty('decorate') && self.config.decorate.length > 0){
-				_.for(self.config.decorate,function(vDeco,kDeco){
+			if(fKeep===true && typeof self.config.decorate !=='undefined' && self.config.decorate.length > 0){
+				for(var i=0;i<self.config.decorate.length;i++){
+					var vDeco=self.config.decorate[i];
 					var intDeco=vDeco.find.length;
 					if(intDeco > 0){
-						_.for(vDeco.find,function(vFind,kFind){
-						//console.log(vFind);
-						//check the condition
-							if(vFind.hasOwnProperty('op') && objOperands.hasOwnProperty(vFind.op)){ 
+						for(var ii=0;ii<vDeco.find.length;ii++){
+							var vFind=vDeco.find[ii];
+							//check the condition
+							if(typeof vFind.op !== 'undefined' && typeof objOperands[vFind.op] !== 'undefined'){ 
 								if(objOperands[vFind.op](vFind.path,vFind.val,vData,{"path2":vFind.path2,"val2":vFind.val2}) === true)
-									{ intDeco--; }
+									{ 
+										//decrement through what needs to be checked
+										intDeco--; 
+									}
 							}
-						});
+						}
 						if(intDeco===0){
 							//it passed the condition, perform ALL the actions.
-							_.for(vDeco.do,function(vDo,kDo){
-								if(objActions.hasOwnProperty(vDo.act)){
+							for(var ii=0;ii<vDeco.do.length;ii++){
+								var vDo=vDeco.do[ii];
+								if(typeof objActions[vDo.act] !== 'undefined'){
 									vData = objActions[vDo.act](vData,vDo.path,vDo.val);
 								}
-							});
+							}
 						}
 					}
-				});
+				}
 			}
 		if(fKeep===true){
 			//all decorations complete, add to the return collection
@@ -249,6 +254,10 @@ var fnValidOperand=function(strOperand,strValue){
 		return objData;
 	};
 //----====|| DATA TYPE ACTIONS ||====----\\
+var objTypeActions={
+	 "url":{}
+	,"ip":{}
+};
 objTypeActions.url.parse = function(objData,strPath,varVal){
 		//this requires https://github.com/unshiftio/url-parse
 		//console.log(objData,strPath,varVal);
