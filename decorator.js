@@ -64,7 +64,7 @@ this.decorate = function(arrData){
 };
 
 //----====|| Get Options ||====----\\
-this.fnReturnOptions=function(objConfig){
+this.fnReturnOptions = function(objConfig) {
 	/*
 	this object is a subset of what is in suddenschema, it has a lot more values that can be ignored.
 	data types come from the library datatypetester https://github.com/SuddenDevelopment/dataTypeTester
@@ -75,22 +75,52 @@ this.fnReturnOptions=function(objConfig){
 		,max: 15
 	}
 	*/
+
 	//objConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
 	//the more data returned the narrower the results can be
-	var objResults={
-		 "ops":[]
-		,"acts":[]
+
+
+	var objConfigType = typeof objConfig;
+	if (!objConfigType || objConfigType !== 'object') {
+		objConfig = {};
+	}
+
+	var generalDataTypes = {
+		number: { ops: [], acts: [] },
+		string: { ops: [], acts: [] },
+		array: { ops: [], acts: [] },
+		object: { ops: [], acts: [] },
+		boolean: { ops: [], acts: [] },
 	};
-	//populate the operands that make sense
 
-	//populate the actions that make sense
+	var specificDataTypes = {
+		unixtime: { ops: [], acts: [] },
+		millitime: { ops: [], acts: [] },
+		ip: { ops: [], acts: [] },
+		email: { ops: [], acts: [] },
+		url: { ops: [], acts: [] },
+		domain: { ops: [], acts: [] },
+		image: { ops: [], acts: [] },
+		md5: { ops: [], acts: [] },
+		sha1: { ops: [], acts: [] },
+		sha256: { ops: [], acts: [] },
+		country_code: { ops: [], acts: [] }
+	};
 
-	//for now return ALL
-	objResults.ops=objOperands.keys;
-	objResults.acts=objActions.keys;
-
-	return objResults;
+	if (generalDataTypes[objConfig.targetType]) {
+		return generalDataTypes[objConfig.targetType];
+	}
+	else if (specificDataTypes[objConfig.targetType]) {
+		return specificDataTypes[objConfig.targetType];
+	}
+	else {
+		return {
+			ops: Object.keys(objOperands),
+			acts: Object.keys(objActions)
+		}
+	}
 };
+
 //----====|| Validate and Update Config ||====----\\
 this.fnUpdateConfig=function(objConfig){ 
 	//console.log('fnUpdateConfig',objConfig);
