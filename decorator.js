@@ -4,6 +4,9 @@ if (typeof window === 'undefined'){var utils = require('suddenutils'); }
 var _ = new utils();
 var Decorator = function(objConfig){
 var self=this;
+
+self._transforms = null;
+
 this.decorate = function(arrData){
 	'use strict';
 	if(arrData.constructor !== Array){ arrData=[arrData]; }
@@ -64,7 +67,32 @@ this.decorate = function(arrData){
 };
 
 //----====|| Get Options ||====----\\
-this.fnReturnOptions = function(objConfig) {
+self._loadTransformOptions = function() {
+	self._transforms = {
+			base: {
+				number: { ops: [], acts: [] },
+				string: { ops: [], acts: [] },
+				array: { ops: [], acts: [] },
+				object: { ops: [], acts: [] },
+				boolean: { ops: [], acts: [] }
+			},
+			extended: {
+				unixtime: { ops: [], acts: [] },
+				millitime: { ops: [], acts: [] },
+				ip: { ops: [], acts: [] },
+				email: { ops: [], acts: [] },
+				url: { ops: [], acts: [] },
+				domain: { ops: [], acts: [] },
+				image: { ops: [], acts: [] },
+				md5: { ops: [], acts: [] },
+				sha1: { ops: [], acts: [] },
+				sha256: { ops: [], acts: [] },
+				country_code: { ops: [], acts: [] }
+			}
+		};
+};
+
+self.fnReturnOptions = function(objDataTypeConfig) {
 	/*
 	this object is a subset of what is in suddenschema, it has a lot more values that can be ignored.
 	data types come from the library datatypetester https://github.com/SuddenDevelopment/dataTypeTester
@@ -76,42 +104,27 @@ this.fnReturnOptions = function(objConfig) {
 	}
 	*/
 
-	//objConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
+	//objDataTypeConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
 	//the more data returned the narrower the results can be
 
 
-	var objConfigType = typeof objConfig;
+	var objConfigType = typeof objDataTypeConfig;
 	if (!objConfigType || objConfigType !== 'object') {
-		objConfig = {};
+		objDataTypeConfig = {};
 	}
 
-	var generalDataTypes = {
-		number: { ops: [], acts: [] },
-		string: { ops: [], acts: [] },
-		array: { ops: [], acts: [] },
-		object: { ops: [], acts: [] },
-		boolean: { ops: [], acts: [] },
-	};
-
-	var specificDataTypes = {
-		unixtime: { ops: [], acts: [] },
-		millitime: { ops: [], acts: [] },
-		ip: { ops: [], acts: [] },
-		email: { ops: [], acts: [] },
-		url: { ops: [], acts: [] },
-		domain: { ops: [], acts: [] },
-		image: { ops: [], acts: [] },
-		md5: { ops: [], acts: [] },
-		sha1: { ops: [], acts: [] },
-		sha256: { ops: [], acts: [] },
-		country_code: { ops: [], acts: [] }
-	};
-
-	if (generalDataTypes[objConfig.targetType]) {
-		return generalDataTypes[objConfig.targetType];
+	if (!self.transforms) {
+		self._loadTransformOptions();
 	}
-	else if (specificDataTypes[objConfig.targetType]) {
-		return specificDataTypes[objConfig.targetType];
+
+	var baseTransforms = self.getBaseTransformOptions()
+	  , extendedTransforms = self.getExtendedTransformOptions();
+
+	if (baseTransforms[objDataTypeConfig.type]) {
+		return baseTransforms[objDataTypeConfig.type];
+	}
+	else if (extendedTransforms[objDataTypeConfig.type]) {
+		return extendedTransforms[objDataTypeConfig.type];
 	}
 	else {
 		return {
@@ -120,6 +133,9 @@ this.fnReturnOptions = function(objConfig) {
 		}
 	}
 };
+
+self.getBaseTransformOptions = function() { return self._transforms.base; };
+self.getExtendedTransformOptions = function() { return self._transforms.extended; };
 
 //----====|| Validate and Update Config ||====----\\
 this.fnUpdateConfig=function(objConfig){ 
@@ -386,7 +402,13 @@ objTypeActions.ip.bigint=function(){
 
 	//----====|| INIT ||====----\\
 	if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
+
 	//validate and clean config
 	self.fnUpdateConfig(objConfig);
+
+	// Load all possible transform options immediately unless explicitly suppressed by calling code
+	if (!objConfig.suppressTransformOptionLoad) {
+		self._loadTransformOptions();
+	}
 };
 if (typeof module !== 'undefined' && module.exports){module.exports = Decorator;}

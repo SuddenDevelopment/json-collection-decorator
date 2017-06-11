@@ -72,7 +72,7 @@ describe('available transforms', function() {
 
     //----====|| TESTS ||====----\\
 
-    it('get all - no objConfig passed', function() {
+    it('get all - no objDataTypeConfig passed', function() {
         var dec = new Decorator();
         var arrResults = dec.fnReturnOptions();
         validateResultsObject(arrResults);
@@ -80,20 +80,22 @@ describe('available transforms', function() {
         checkArrayEquality(arrResults.acts.sort(), allActions);
     });
 
-    it('get all - bad config passed (no targetType field included)', function() {
+    it('get all - bad objDataTypeConfig passed (no "type" field included)', function() {
         var dec = new Decorator();
-        var arrResults = dec.fnReturnOptions({ noTargetTypeFieldIncluded: true });
+        var arrResults = dec.fnReturnOptions({ noTypeFieldIncluded: true });
         validateResultsObject(arrResults);
         checkArrayEquality(arrResults.ops.sort(), allOperands);
         checkArrayEquality(arrResults.acts.sort(), allActions);
     });
 
-    it('get all - unrecognized targetType', function() {
+    it('get all - unrecognized type', function() {
         var dec = new Decorator();
-        var arrResults = dec.fnReturnOptions({ targetType: 'somethingYouDontEvenKnowAbout' });
+        var arrResults = dec.fnReturnOptions({ type: 'somethingYouDontEvenKnowAbout' });
         validateResultsObject(arrResults);
         checkArrayEquality(arrResults.ops.sort(), allOperands);
         checkArrayEquality(arrResults.acts.sort(), allActions);
     });
+
+
 
 });
