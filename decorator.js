@@ -65,20 +65,20 @@ this.decorate = function(arrData){
 };
 
 //----====|| Transform Options ||====----\\
-var transformOptions = null;
-var arrAvailableOperands = [];
-var arrAvailableActions = [];
+var _objTransformOptions = null;
+var _arrAvailableOperands = [];
+var _arrAvailableActions = [];
 
 /*
 These options are used to augment all of the transform options by default.
 For example, the "log" action should be available to every data type.
 */
-var globalDataTypeOptions = { ops: [], acts: ['log'] };
+var _objGlobalDataTypeOptions = { ops: [], acts: ['log'] };
 
 /*
 NOTE: the order of the sections in this object is important here. "Base" types must be defined before "extended" types.
 */
-var dataTypeOptionsTemplate = {
+var _objDataTypeOptionsTemplate = {
 	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
 	number: { ops: [], acts: ['add'] },
 	string: { ops: [], acts: ['append', 'prepend'] },
@@ -102,34 +102,30 @@ var dataTypeOptionsTemplate = {
 
 self._loadTransformOptions = function(optionsTemplate) {
 
-	transformOptions = {}
-	arrAvailableOperands = Object.keys(objOperands).sort();
-	arrAvailableActions = Object.keys(objActions).sort();
+	_objTransformOptions = {}
+	_arrAvailableOperands = Object.keys(objOperands).sort();
+	_arrAvailableActions = Object.keys(objActions).sort();
 
 	function extendOptions(dataType, optionType, availableOptions, excludedOptions) {
+		// Adds each available option to the data type's transform options unless it's been explicitly excluded
 		availableOptions.forEach(function(option) {
-			// Transform type already has this option. No need to process further.
-			if (transformOptions[dataType][optionType].indexOf(option) > -1) {
-				return;
-			}
-			// Adds each option to the transform type unless it's been explicitly excluded
-			if (excludedOptions.indexOf(option) === -1) {
-				transformOptions[dataType][optionType].push(option);
+			if (_objTransformOptions[dataType][optionType].indexOf(option) === -1 && excludedOptions.indexOf(option) === -1) {
+				_objTransformOptions[dataType][optionType].push(option);
 			}
 		});
 	}
 
 	for (var dataType in optionsTemplate) {
 
-		var transformTemplate = optionsTemplate[dataType];
-		var excludedOperands = transformTemplate.excludesOperands || [];
-		var excludedActions = transformTemplate.excludesActions || [];
+		var transformTemplate = optionsTemplate[dataType]
+		  , excludedOperands = transformTemplate.excludesOperands || []
+		  , excludedActions = transformTemplate.excludesActions || [];
 
-		transformOptions[dataType] = { ops: [], acts: [] };
+		_objTransformOptions[dataType] = { ops: [], acts: [] };
 
 		// Start by including the global options
-		extendOptions(dataType, 'ops', globalDataTypeOptions.ops, excludedOperands);
-		extendOptions(dataType, 'acts', globalDataTypeOptions.acts, excludedOperands);
+		extendOptions(dataType, 'ops', _objGlobalDataTypeOptions.ops, excludedOperands, true);
+		extendOptions(dataType, 'acts', _objGlobalDataTypeOptions.acts, excludedActions, true);
 
 		if (transformTemplate.extends) {
 			if (!Array.isArray(transformTemplate.extends)) {
@@ -143,69 +139,91 @@ self._loadTransformOptions = function(optionsTemplate) {
 			}
 
 			transformTemplate.extends.forEach(function(parentName) {
-				var parent = transformOptions[parentName];
+				var parent = _objTransformOptions[parentName];
 				extendOptions(dataType, 'ops', parent.ops, excludedOperands);
 				extendOptions(dataType, 'acts', parent.acts, excludedActions);
 			});
 		} else {
-			// Ensures that base transform types are cloned from the template to the "instantiation" (i.e. transformOptions)
+			// Ensures that base transform types are cloned from the template to the "instantiation" (i.e. _objTransformOptions)
 			extendOptions(dataType, 'ops', optionsTemplate[dataType].ops, excludedOperands);
 			extendOptions(dataType, 'acts', optionsTemplate[dataType].acts, excludedActions);
 		}
 
-		transformOptions[dataType].ops.sort();
-		transformOptions[dataType].acts.sort();
+		_objTransformOptions[dataType].ops.sort();
+		_objTransformOptions[dataType].acts.sort();
 	}
 };
 
 self.fnReturnOptions = function(objDataTypeConfig) {
 	/*
-	this object is a subset of what is in suddenschema, it has a lot more values that can be ignored.
-	data types come from the library datatypetester https://github.com/SuddenDevelopment/dataTypeTester
+	Expects an object that contains fields `typ` and `dataTypes`.
+
+	`typ` is expected to be a string representing a common JavaScript data type: string, number, array, object, boolean
+	This field will always be present and populated.
+
+	`dataTypes` is expected to be an array of strings representing various specific ("extended") data types, such as: ip, email, unixtime, etc.
+	This field will always be present, but may be empty.
+
+	This function should assemble the contents of the `typ` and `dataTypes` fields, determine the available options for each type,
+	and then return this as a JavaScript object with the following format:
 	{
-		 typ: "string"
-		,dataTypes:["ip"]
-		,min: 15
-		,max: 15
+	type1: { ops: [], acts: [] },
+	type2: { ops: [], acts: [] },
+	type3: { ops: [], acts: [] }
 	}
 	*/
 
-	//objDataTypeConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
-	//the more data returned the narrower the results can be
+	function assembleTargetedDataTypes(dataTypeConfig) {
+		var types = [];
+
+		if (dataTypeConfig.typ) {
+			types.push(dataTypeConfig.typ);
+		}
+
+		if (dataTypeConfig.dataTypes && dataTypeConfig.dataTypes.length > 0) {
+			types = types.concat(dataTypeConfig.dataTypes);
+		}
+
+		return types;
+	}
 
 	var objConfigType = typeof objDataTypeConfig;
 	if (!objConfigType || objConfigType !== 'object') {
 		objDataTypeConfig = {};
 	}
 
+	var arrTargetedTypes = assembleTargetedDataTypes(objDataTypeConfig);
+
+	// Return all possible options if no type (or an unknown type) was specified. No need to proceed further.
+	if (arrTargetedTypes.length === 0) {
+		return {
+			all: {
+				ops: _arrAvailableOperands,
+				acts: _arrAvailableActions
+			}
+		}
+	}
 	// Load the transform options if they haven't been already.
-	if (!transformOptions) {
-		self._loadTransformOptions(dataTypeOptionsTemplate);
+	else if (!_objTransformOptions) {
+		self._loadTransformOptions(_objDataTypeOptionsTemplate);
 	}
 
-	if (objDataTypeConfig.type) {
-		if (transformOptions[objDataTypeConfig.type]) {
-			return {
-				ops: transformOptions[objDataTypeConfig.type].ops,
-				acts: transformOptions[objDataTypeConfig.type].acts
-			}
-		} else {
-			throw new Error('Unrecognized data type: ' + objDataTypeConfig.type);
-		}
-	}
-	// Return all possible options if no type (or an unknown type) was specified
-	else {
-		return {
-			ops: arrAvailableOperands,
-			acts: arrAvailableActions
-		}
-	}
+	var objResults = {};
+
+	arrTargetedTypes.forEach(function(type) {
+		objResults[type] = {
+			ops: _objTransformOptions[type].ops,
+			acts: _objTransformOptions[type].acts
+		};
+	});
+
+	return objResults;
 };
 
 // Makes data accessible to client code f
-self.getAllAvailableTransformOptions = function() { return transformOptions; };
-self.getAllAvailableOperands = function() { return arrAvailableOperands; };
-self.getAllAvailableActions = function() { return arrAvailableActions; };
+self.getAllAvailableTransformOptions = function() { return _objTransformOptions; };
+self.getAllAvailableOperands = function() { return _arrAvailableOperands; };
+self.getAllAvailableActions = function() { return _arrAvailableActions; };
 
 //----====|| Validate and Update Config ||====----\\
 this.fnUpdateConfig=function(objConfig){ 
@@ -478,7 +496,7 @@ objTypeActions.ip.bigint=function(){
 
 	// Load all possible transform options immediately unless explicitly suppressed by calling code
 	if (!objConfig.suppressTransformOptionLoad) {
-		self._loadTransformOptions(dataTypeOptionsTemplate);
+		self._loadTransformOptions(_objDataTypeOptionsTemplate);
 	}
 };
 if (typeof module !== 'undefined' && module.exports){module.exports = Decorator;}
