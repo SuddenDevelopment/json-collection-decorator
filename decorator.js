@@ -73,25 +73,25 @@ var _arrAvailableActions = [];
 These options are used to augment all of the transform options by default.
 For example, the "log" action should be available to every data type.
 */
-var _objGlobalDataTypeOptions = { ops: [], acts: ['log'] };
+var _objGlobalDataTypeOptions = { ops: ['any', 'data', 'empty'], acts: ['copy', 'log', 'set'] };
 
 /*
 NOTE: the order of the sections in this object is important here. "Base" types must be defined before "extended" types.
 */
 var _objDataTypeOptionsTemplate = {
 	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
-	number: { ops: [], acts: ['add'] },
-	string: { ops: [], acts: ['append', 'prepend'] },
-	array: { ops: [], acts: [] },
-	object: { ops: [], acts: [] },
-	boolean: { ops: [], acts: [] },
+	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] },
+	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
+	array: { ops: ['find', 'in', 'ni'], acts: ['implode', 'stack', 'unstack'] },
+	object: { ops: [], acts: ['findCopy', 'focus', 'prioritize', 'rand', 'remove', 'rename'] },
+	boolean: { ops: ['eq', 'ne'], acts: [] },
 
 	// Extended Types Section - these are more narrowly-defined data types that build off of base types.
 	unixtime: { extends: 'number', ops: [], acts: [] },
 	millitime: { extends: 'number', ops: [], acts: [] },
-	ip: { extends: 'string', ops: [], acts: [] },
+	ip: { extends: 'string', ops: [], acts: ['bigInt'] },
 	email: { extends: 'string', ops: [], acts: [] },
-	url: { extends: 'string', ops: [], acts: [] },
+	url: { extends: 'string', ops: [], acts: ['parse'] },
 	domain: { extends: 'string', ops: [], acts: [] },
 	image: { extends: 'string', ops: [], acts: [] },
 	md5: { extends: 'string', ops: [], acts: [] },
@@ -143,6 +143,10 @@ self._loadTransformOptions = function(optionsTemplate) {
 				extendOptions(dataType, 'ops', parent.ops, excludedOperands);
 				extendOptions(dataType, 'acts', parent.acts, excludedActions);
 			});
+
+			// Add additional ops and acts
+			extendOptions(dataType, 'ops', optionsTemplate[dataType].ops, excludedOperands);
+			extendOptions(dataType, 'acts', optionsTemplate[dataType].acts, excludedActions);
 		} else {
 			// Ensures that base transform types are cloned from the template to the "instantiation" (i.e. _objTransformOptions)
 			extendOptions(dataType, 'ops', optionsTemplate[dataType].ops, excludedOperands);
@@ -220,8 +224,10 @@ self.fnReturnOptions = function(objDataTypeConfig) {
 	return objResults;
 };
 
-// Makes data accessible to client code f
+// Makes certain data accessible to client code. Currently, mostly used for comprehensive unit testing.
+self.getBaseOptionsTemplate = function() { return _objDataTypeOptionsTemplate; };
 self.getAllAvailableTransformOptions = function() { return _objTransformOptions; };
+self.getAllAvailableGlobalOptions = function() { return _objGlobalDataTypeOptions; };
 self.getAllAvailableOperands = function() { return _arrAvailableOperands; };
 self.getAllAvailableActions = function() { return _arrAvailableActions; };
 
@@ -387,21 +393,16 @@ var fnValidOperand=function(strOperand,strValue){
 		//console.log(fKeep);
 		return objData;
 	};
-//----====|| DATA TYPE ACTIONS ||====----\\
-var objTypeActions={
-	 "url":{}
-	,"ip":{}
-};
-objTypeActions.url.parse = function(objData,strPath,varVal){
+	objActions.parse = function(objData,strPath,varVal){
 		//this requires https://github.com/unshiftio/url-parse
 		//console.log(objData,strPath,varVal);
 		var objUrl = new URL(_.get(objData,strPath));
 		_.set(objData,varVal,objUrl);
 		return objData;
 	};
-objTypeActions.ip.bigint=function(){
-	//convert a string ip to a bigint
-}
+	objActions.bigInt=function(){
+		//convert a string ip to a bigint
+	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; };
@@ -438,6 +439,7 @@ objTypeActions.ip.bigint=function(){
 			if(intCount>0){ return true; }else{return false;}
 		}
 	};
+	// NOTE - this seems like an incomplete version of the "in" operand
 	objOperands.has = function(strPath,strNeedle,objStat,objOptions){ 
 		//{path:"user",op:"has",val:".",val2:3}
 		var intCount = 0; var v=_.get(objStat,strPath);

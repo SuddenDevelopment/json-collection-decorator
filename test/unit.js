@@ -95,26 +95,26 @@ describe('Available Transforms', function() {
     it('gets options for the array data type in isolation', function() {
         var objDec = new Decorator({ filters: [], decorate: [], suppressTransformOptionLoad: true });
         var objTemplate = {
-            array: { ops: ['in', 'has'], acts: ['implode'] }
+            array: { ops: ['find', 'in', 'ni'], acts: ['implode', 'stack', 'unstack'] }
         };
 
         objDec._loadTransformOptions(objTemplate)
 
         var objTransformOptions = objDec.fnReturnOptions({ typ: 'array' });
-        validateResultsObject(objTransformOptions.array, ['has', 'in'], ['implode', 'log']);
+        validateResultsObject(objTransformOptions.array, ['any', 'data', 'empty', 'find', 'in', 'ni'], ['copy', 'implode', 'log', 'set', 'stack', 'unstack']);
     });
 
     it('gets options for the ip data type which inherits from the string data type', function() {
         var objDec = new Decorator({ filters: [], decorate: [], suppressTransformOptionLoad: true });
         var objTemplate = {
             string: { ops: ['ne', 'eq'], acts: ['prepend', 'append'] },
-            ip: { extends: 'string', ops: [], acts: [], excludesActions: ['prepend', 'log'] }
+            ip: { extends: 'string', ops: [], acts: ['bigInt'], excludesActions: ['prepend', 'log'] }
         };
 
         objDec._loadTransformOptions(objTemplate)
 
         var objTransformOptions = objDec.fnReturnOptions({ typ: 'ip' });
-        validateResultsObject(objTransformOptions.ip, ['eq', 'ne'], ['append']);
+        validateResultsObject(objTransformOptions.ip, ['any', 'data', 'empty', 'eq', 'ne'], ['append', 'bigInt', 'copy', 'set']);
     });
 
 });
