@@ -4,6 +4,7 @@ if (typeof window === 'undefined'){var utils = require('suddenutils'); }
 var _ = new utils();
 var Decorator = function(objConfig){
 var self=this;
+
 this.decorate = function(arrData){
 	'use strict';
 	if(arrData.constructor !== Array){ arrData=[arrData]; }
@@ -63,34 +64,173 @@ this.decorate = function(arrData){
 	return arrResponse;
 };
 
-//----====|| Get Options ||====----\\
-this.fnReturnOptions=function(objConfig){
+//----====|| Transform Options ||====----\\
+var _objTransformOptions = null;
+var _arrAvailableOperands = [];
+var _arrAvailableActions = [];
+
+/*
+These options are used to augment all of the transform options by default.
+For example, the "log" action should be available to every data type.
+*/
+var _objGlobalDataTypeOptions = { ops: ['any', 'data', 'empty'], acts: ['copy', 'log', 'set'] };
+
+/*
+NOTE: the order of the sections in this object is important here. "Base" types must be defined before "extended" types.
+*/
+var _objDataTypeOptionsTemplate = {
+	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
+	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] },
+	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
+	array: { ops: ['find', 'in', 'ni'], acts: ['implode', 'stack', 'unstack'] },
+	object: { ops: [], acts: ['findCopy', 'focus', 'prioritize', 'rand', 'remove', 'rename'] },
+	boolean: { ops: ['eq', 'ne'], acts: [] },
+
+	// Extended Types Section - these are more narrowly-defined data types that build off of base types.
+	unixtime: { extends: 'number', ops: [], acts: [] },
+	millitime: { extends: 'number', ops: [], acts: [] },
+	ip: { extends: 'string', ops: [], acts: ['bigInt'] },
+	email: { extends: 'string', ops: [], acts: [] },
+	url: { extends: 'string', ops: [], acts: ['parse'] },
+	domain: { extends: 'string', ops: [], acts: [] },
+	image: { extends: 'string', ops: [], acts: [] },
+	md5: { extends: 'string', ops: [], acts: [] },
+	sha1: { extends: 'string', ops: [], acts: [] },
+	sha256: { extends: 'string', ops: [], acts: [] },
+	country_code: { extends: 'string', ops: [], acts: [] }
+};
+
+self._loadTransformOptions = function(optionsTemplate) {
+
+	_objTransformOptions = {}
+	_arrAvailableOperands = Object.keys(objOperands).sort();
+	_arrAvailableActions = Object.keys(objActions).sort();
+
+	function extendOptions(dataType, optionType, availableOptions, excludedOptions) {
+		// Adds each available option to the data type's transform options unless it's been explicitly excluded
+		availableOptions.forEach(function(option) {
+			if (_objTransformOptions[dataType][optionType].indexOf(option) === -1 && excludedOptions.indexOf(option) === -1) {
+				_objTransformOptions[dataType][optionType].push(option);
+			}
+		});
+	}
+
+	for (var dataType in optionsTemplate) {
+
+		var transformTemplate = optionsTemplate[dataType]
+		  , excludedOperands = transformTemplate.excludesOperands || []
+		  , excludedActions = transformTemplate.excludesActions || [];
+
+		_objTransformOptions[dataType] = { ops: [], acts: [] };
+
+		// Start by including the global options
+		extendOptions(dataType, 'ops', _objGlobalDataTypeOptions.ops, excludedOperands, true);
+		extendOptions(dataType, 'acts', _objGlobalDataTypeOptions.acts, excludedActions, true);
+
+		if (transformTemplate.extends) {
+			if (!Array.isArray(transformTemplate.extends)) {
+				if (typeof transformTemplate.extends === 'string') {
+					// Strings get wrapped by an array so that subsequent handling can assume an array of strings
+					transformTemplate.extends = [transformTemplate.extends];
+				} else {
+					// Anything other than a string or an array should throw an exception
+					throw new TypeError('Misconfigured transform: "' + dataType + '" -> "extends" field must be null, an array, or a string.')
+				}
+			}
+
+			transformTemplate.extends.forEach(function(parentName) {
+				var parent = _objTransformOptions[parentName];
+				extendOptions(dataType, 'ops', parent.ops, excludedOperands);
+				extendOptions(dataType, 'acts', parent.acts, excludedActions);
+			});
+
+			// Add additional ops and acts
+			extendOptions(dataType, 'ops', optionsTemplate[dataType].ops, excludedOperands);
+			extendOptions(dataType, 'acts', optionsTemplate[dataType].acts, excludedActions);
+		} else {
+			// Ensures that base transform types are cloned from the template to the "instantiation" (i.e. _objTransformOptions)
+			extendOptions(dataType, 'ops', optionsTemplate[dataType].ops, excludedOperands);
+			extendOptions(dataType, 'acts', optionsTemplate[dataType].acts, excludedActions);
+		}
+
+		_objTransformOptions[dataType].ops.sort();
+		_objTransformOptions[dataType].acts.sort();
+	}
+};
+
+self.fnReturnOptions = function(objDataTypeConfig) {
 	/*
-	this object is a subset of what is in suddenschema, it has a lot more values that can be ignored.
-	data types come from the library datatypetester https://github.com/SuddenDevelopment/dataTypeTester
+	Expects an object that contains fields `typ` and `dataTypes`.
+
+	`typ` is expected to be a string representing a common JavaScript data type: string, number, array, object, boolean
+	This field will always be present and populated.
+
+	`dataTypes` is expected to be an array of strings representing various specific ("extended") data types, such as: ip, email, unixtime, etc.
+	This field will always be present, but may be empty.
+
+	This function should assemble the contents of the `typ` and `dataTypes` fields, determine the available options for each type,
+	and then return this as a JavaScript object with the following format:
 	{
-		 typ: "string"
-		,dataTypes:["ip"]
-		,min: 15
-		,max: 15
+	type1: { ops: [], acts: [] },
+	type2: { ops: [], acts: [] },
+	type3: { ops: [], acts: [] }
 	}
 	*/
-	//objConfig is expected to be an ovject with shce info filled in for a data field, probably from suddenschema
-	//the more data returned the narrower the results can be
-	var objResults={
-		 "ops":[]
-		,"acts":[]
-	};
-	//populate the operands that make sense
 
-	//populate the actions that make sense
+	function assembleTargetedDataTypes(dataTypeConfig) {
+		var types = [];
 
-	//for now return ALL
-	objResults.ops=objOperands.keys;
-	objResults.acts=objActions.keys;
+		if (dataTypeConfig.typ) {
+			types.push(dataTypeConfig.typ);
+		}
+
+		if (dataTypeConfig.dataTypes && dataTypeConfig.dataTypes.length > 0) {
+			types = types.concat(dataTypeConfig.dataTypes);
+		}
+
+		return types;
+	}
+
+	var objConfigType = typeof objDataTypeConfig;
+	if (!objConfigType || objConfigType !== 'object') {
+		objDataTypeConfig = {};
+	}
+
+	var arrTargetedTypes = assembleTargetedDataTypes(objDataTypeConfig);
+
+	// Return all possible options if no type (or an unknown type) was specified. No need to proceed further.
+	if (arrTargetedTypes.length === 0) {
+		return {
+			all: {
+				ops: _arrAvailableOperands,
+				acts: _arrAvailableActions
+			}
+		}
+	}
+	// Load the transform options if they haven't been already.
+	else if (!_objTransformOptions) {
+		self._loadTransformOptions(_objDataTypeOptionsTemplate);
+	}
+
+	var objResults = {};
+
+	arrTargetedTypes.forEach(function(type) {
+		objResults[type] = {
+			ops: _objTransformOptions[type].ops,
+			acts: _objTransformOptions[type].acts
+		};
+	});
 
 	return objResults;
 };
+
+// Makes certain data accessible to client code. Currently, mostly used for comprehensive unit testing.
+self.getBaseOptionsTemplate = function() { return _objDataTypeOptionsTemplate; };
+self.getAllAvailableTransformOptions = function() { return _objTransformOptions; };
+self.getAllAvailableGlobalOptions = function() { return _objGlobalDataTypeOptions; };
+self.getAllAvailableOperands = function() { return _arrAvailableOperands; };
+self.getAllAvailableActions = function() { return _arrAvailableActions; };
+
 //----====|| Validate and Update Config ||====----\\
 this.fnUpdateConfig=function(objConfig){ 
 	//console.log('fnUpdateConfig',objConfig);
@@ -253,21 +393,16 @@ var fnValidOperand=function(strOperand,strValue){
 		//console.log(fKeep);
 		return objData;
 	};
-//----====|| DATA TYPE ACTIONS ||====----\\
-var objTypeActions={
-	 "url":{}
-	,"ip":{}
-};
-objTypeActions.url.parse = function(objData,strPath,varVal){
+	objActions.parse = function(objData,strPath,varVal){
 		//this requires https://github.com/unshiftio/url-parse
 		//console.log(objData,strPath,varVal);
 		var objUrl = new URL(_.get(objData,strPath));
 		_.set(objData,varVal,objUrl);
 		return objData;
 	};
-objTypeActions.ip.bigint=function(){
-	//convert a string ip to a bigint
-}
+	objActions.bigInt=function(){
+		//convert a string ip to a bigint
+	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
 	objOperands.any = function(){ return true; };
@@ -304,6 +439,7 @@ objTypeActions.ip.bigint=function(){
 			if(intCount>0){ return true; }else{return false;}
 		}
 	};
+	// NOTE - this seems like an incomplete version of the "in" operand
 	objOperands.has = function(strPath,strNeedle,objStat,objOptions){ 
 		//{path:"user",op:"has",val:".",val2:3}
 		var intCount = 0; var v=_.get(objStat,strPath);
@@ -356,7 +492,13 @@ objTypeActions.ip.bigint=function(){
 
 	//----====|| INIT ||====----\\
 	if(typeof objConfig === 'undefined'){objConfig={filters:[],decorate:[]}}
+
 	//validate and clean config
 	self.fnUpdateConfig(objConfig);
+
+	// Load all possible transform options immediately unless explicitly suppressed by calling code
+	if (!objConfig.suppressTransformOptionLoad) {
+		self._loadTransformOptions(_objDataTypeOptionsTemplate);
+	}
 };
 if (typeof module !== 'undefined' && module.exports){module.exports = Decorator;}
