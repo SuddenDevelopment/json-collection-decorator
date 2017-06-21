@@ -235,6 +235,8 @@ self.getAllAvailableActions = function() { return _arrAvailableActions; };
 this.fnUpdateConfig=function(objConfig){ 
 	//console.log('fnUpdateConfig',objConfig);
 	//consistent format
+	if(typeof objConfig.filters === 'undefined'){ objConfig.filters=[]; }
+	if(typeof objConfig.decorate === 'undefined'){ objConfig.decorate=[]; }
 	if(objConfig.filters.constructor !== Array){ objConfig.filters=[objConfig.filters]; }
 	if(objConfig.decorate.constructor !== Array){ objConfig.decorate=[objConfig.decorate]; }
 	var fOk=true;

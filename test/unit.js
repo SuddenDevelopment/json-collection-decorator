@@ -46,6 +46,9 @@ describe('Available Transforms', function() {
         objResults.ops.length.should.equal(expectedOperands.length);
         objResults.acts.length.should.equal(expectedActions.length);
 
+        console.log(objResults.ops);
+        console.log(objResults.acts);
+
         checkArrayEquality(objResults.ops, expectedOperands);
         checkArrayEquality(objResults.acts, expectedActions);
     }
