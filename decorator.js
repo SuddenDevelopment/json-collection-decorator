@@ -225,6 +225,7 @@ self.fnReturnOptions = function(objDataTypeConfig) {
 };
 
 // Makes certain data accessible to client code. Currently, mostly used for comprehensive unit testing.
+self.loadTransformOptions = function(optionsTemplate) { self._loadTransformOptions(optionsTemplate); };
 self.getBaseOptionsTemplate = function() { return _objDataTypeOptionsTemplate; };
 self.getAllAvailableTransformOptions = function() { return _objTransformOptions; };
 self.getAllAvailableGlobalOptions = function() { return _objGlobalDataTypeOptions; };

@@ -46,9 +46,6 @@ describe('Available Transforms', function() {
         objResults.ops.length.should.equal(expectedOperands.length);
         objResults.acts.length.should.equal(expectedActions.length);
 
-        console.log(objResults.ops);
-        console.log(objResults.acts);
-
         checkArrayEquality(objResults.ops, expectedOperands);
         checkArrayEquality(objResults.acts, expectedActions);
     }
@@ -101,10 +98,22 @@ describe('Available Transforms', function() {
             array: { ops: ['find', 'in', 'ni'], acts: ['implode', 'stack', 'unstack'] }
         };
 
-        objDec._loadTransformOptions(objTemplate)
+        /*
+        !!! OPTIONAL !!!
+        The loadTransformOptions() function allows for calling code to specify an options template, instead of using default definitions.
+        We only call loadTransformOptions() here in order to explicitly test the assembly of various transform options.
+        Unless calling code WANTS to define its own matrix of transform options, then loadTransformOptions() doesn't need to be called at all.
+        */
+        objDec.loadTransformOptions(objTemplate)
 
+        // Retrieve available transform options for the specified type, which in this case is just "array".
         var objTransformOptions = objDec.fnReturnOptions({ typ: 'array' });
-        validateResultsObject(objTransformOptions.array, ['any', 'data', 'empty', 'find', 'in', 'ni'], ['copy', 'implode', 'log', 'set', 'stack', 'unstack']);
+
+        // These are the operands and actions we expect to be returned for the specified types, which in this case is just "ip".
+        var arrExpectedOperandsForType_Array = ['any', 'data', 'empty', 'find', 'in', 'ni']
+          , arrExpectedActionsForType_Array = ['copy', 'implode', 'log', 'set', 'stack', 'unstack'];
+
+        validateResultsObject(objTransformOptions.array, arrExpectedOperandsForType_Array, arrExpectedActionsForType_Array);
     });
 
     it('gets options for the ip data type which inherits from the string data type', function() {
@@ -114,10 +123,63 @@ describe('Available Transforms', function() {
             ip: { extends: 'string', ops: [], acts: ['bigInt'], excludesActions: ['prepend', 'log'] }
         };
 
-        objDec._loadTransformOptions(objTemplate)
+        /*
+        !!! OPTIONAL !!!
+        The loadTransformOptions() function allows for calling code to specify an options template, instead of using default definitions.
+        We only call loadTransformOptions() here in order to explicitly test the assembly of various transform options.
+        Unless calling code WANTS to define its own matrix of transform options, then loadTransformOptions() doesn't need to be called at all.
+        */
+        objDec.loadTransformOptions(objTemplate)
 
+        // Retrieve available transform options for the specified type, which in this case is just "ip".
         var objTransformOptions = objDec.fnReturnOptions({ typ: 'ip' });
-        validateResultsObject(objTransformOptions.ip, ['any', 'data', 'empty', 'eq', 'ne'], ['append', 'bigInt', 'copy', 'set']);
+
+        // These are the operands and actions we expect to be returned for the specified types, which in this case is just "ip".
+        var arrExpectedOperandsForType_Ip = ['any', 'data', 'empty', 'eq', 'ne']
+          , arrExpectedActionsForType_Ip = ['append', 'bigInt', 'copy', 'set'];
+
+        validateResultsObject(objTransformOptions.ip, arrExpectedOperandsForType_Ip, arrExpectedActionsForType_Ip);
+    });
+
+    it('gets options for the multiple types', function() {
+        var objDec = new Decorator({ filters: [], decorate: [], suppressTransformOptionLoad: true });
+        var objTemplate = {
+            number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] }, // No options for this data type will be returned from fnReturnOptions(), since "number" is not present in any of the "type" fields in the object that's passed to fnReturnOptions()
+            string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
+            ip: { extends: 'string', ops: [], acts: ['bigInt'], excludesActions: ['prepend', 'log'] },
+            url: { extends: 'string', ops: [], acts: ['parse'], excludesActions: ['append', 'explode'] }
+        };
+
+        /*
+        !!! OPTIONAL !!!
+        The loadTransformOptions() function allows for calling code to specify an options template, instead of using default definitions.
+        We only call loadTransformOptions() here in order to explicitly test the assembly of various transform options.
+        Unless calling code WANTS to define its own matrix of transform options, then loadTransformOptions() doesn't need to be called at all.
+        */
+        objDec.loadTransformOptions(objTemplate)
+
+        // Retrieve available transform options for the specified types, which in this case includes: string, ip, url
+        var objTransformOptions = objDec.fnReturnOptions({ typ: 'string', dataTypes: ['ip', 'url'] });
+
+        // These are the operands and actions that we expect to be returned for the "string" data type.
+        var arrExpectedOperandsForType_String = ['any', 'data', 'empty', 'eq', 'in', 'ne', 'ni']
+          , arrExpectedActionsForType_String = ['append', 'copy', 'explode', 'log', 'prepend', 'set'];
+
+        // These are the operands and actions that we expect to be returned for the "ip" data type.
+        var arrExpectedOperandsForType_Ip = ['any', 'data', 'empty', 'eq', 'in', 'ne', 'ni']
+          , arrExpectedActionsForType_Ip = ['append', 'bigInt', 'copy', 'explode', 'set'];
+
+        // These are the operands and actions that we expect to be returned for the "url" data type.
+        var arrExpectedOperandsForType_Url = ['any', 'data', 'empty', 'eq', 'in', 'ne', 'ni']
+          , arrExpectedActionsForType_Url = ['copy', 'log', 'parse', 'prepend', 'set'];
+
+        /*
+        Options are returned for types "string", "ip", and "url"
+        ...since those types were declared in the "typ" and "dataTypes" fields in the argument object that was passed to fnReturnOptions() above
+        */
+        validateResultsObject(objTransformOptions.string, arrExpectedOperandsForType_String, arrExpectedActionsForType_String);
+        validateResultsObject(objTransformOptions.ip, arrExpectedOperandsForType_Ip, arrExpectedActionsForType_Ip);
+        validateResultsObject(objTransformOptions.url, arrExpectedOperandsForType_Url, arrExpectedActionsForType_Url);
     });
 
 });
