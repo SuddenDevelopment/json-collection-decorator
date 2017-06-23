@@ -82,7 +82,7 @@ var _objDataTypeOptionsTemplate = {
 	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
 	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] },
 	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
-	array: { ops: ['find', 'in', 'ni'], acts: ['implode', 'stack', 'unstack'] },
+	array: { ops: ['find', 'in', 'ni', 'length'], acts: ['implode', 'stack', 'unstack'] },
 	object: { ops: [], acts: ['findCopy', 'focus', 'prioritize', 'rand', 'remove', 'rename'] },
 	boolean: { ops: ['eq', 'ne'], acts: [] },
 
@@ -421,6 +421,12 @@ var fnValidOperand=function(strOperand,strValue){
 		}
 
 	}
+	objOperands.length = function(strPath,intNeedle,objStat,objOptions){
+		var varVal = _.get(objStat,strPath);
+		if(varVal !== null && varVal.constructor === Array){
+			if(varVal.length === intNeedle){ return true; }
+		}
+	};
 	objOperands.empty = function(strPath,strNeedle,objStat,objOptions){
 		var varVal = _.get(objStat,strPath);
 		if(varVal === '' || varVal === null ){ return true;  }
