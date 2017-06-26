@@ -424,7 +424,7 @@ var fnValidOperand=function(strOperand,strValue){
 			}
 		}
 		_.set(objData,strPath,arrOut);
-		console.log(objData,strPath,arrOut)
+		//console.log(objData,strPath,arrOut)
 		return objData;
 	}
 //----====|| OPERANDS ||====----\\
