@@ -82,7 +82,7 @@ var _objDataTypeOptionsTemplate = {
 	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
 	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] },
 	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
-	array: { ops: ['find', 'in', 'ni', 'length'], acts: ['implode', 'stack', 'unstack'] },
+	array: { ops: ['find', 'in', 'ni', 'length'], acts: ['implode', 'stack', 'unstack','arrs2objs'] },
 	object: { ops: [], acts: ['findCopy', 'focus', 'prioritize', 'rand', 'remove', 'rename'] },
 	boolean: { ops: ['eq', 'ne'], acts: [] },
 
@@ -403,8 +403,29 @@ var fnValidOperand=function(strOperand,strValue){
 		_.set(objData,varVal,objUrl);
 		return objData;
 	};
-	objActions.bigInt=function(){
+	objActions.bigInt=function(objData,strPath,varVal){
 		//convert a string ip to a bigint
+
+	}
+	objActions.arrs2objs=function(objData,strPath,varVal){
+		//convert an array of arrays to an array of objects
+		var arrOut=[];
+		if(objData[strPath].constructor === Array){
+			for(var i=0;i<objData[strPath].length;i++){
+				//for each child array
+				if(objData[strPath][i].constructor === Array){
+					var objOut={};
+					//for each item in that child array
+					for(var ii=0;ii<objData[strPath][i].length;ii++){
+						objOut[ii]=objData[strPath][i][ii];
+					}
+					arrOut.push(objOut);
+				}
+			}
+		}
+		_.set(objData,strPath,arrOut);
+		console.log(objData,strPath,arrOut)
+		return objData;
 	}
 //----====|| OPERANDS ||====----\\
 	var objOperands={};
