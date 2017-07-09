@@ -185,7 +185,15 @@ self.fnReturnOptions = function(objDataTypeConfig) {
 		}
 
 		if (dataTypeConfig.dataTypes && dataTypeConfig.dataTypes.length > 0) {
-			types = types.concat(dataTypeConfig.dataTypes);
+			dataTypeConfig.dataTypes.forEach(function(type) {
+				if (typeof type === 'string') {
+					types.push(type);
+				} else if (Array.isArray(type)) {
+					type.forEach(function(t) {
+						types.push(t);
+					});
+				}
+			});
 		}
 
 		return types;
