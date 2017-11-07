@@ -80,11 +80,11 @@ NOTE: the order of the sections in this object is important here. "Base" types m
 */
 var _objDataTypeOptionsTemplate = {
 	// Base Types Section - these can be used on their own or serve as building blocks for composing more specific types 
-	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add'] },
-	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode'] },
-	array: { ops: ['find', 'in', 'ni', 'length'], acts: ['implode', 'stack', 'unstack','arrs2objs'] },
+	number: { ops: ['eq', 'ne', 'gt', 'lt'], acts: ['add', 'focus'] },
+	string: { ops: ['eq', 'ne', 'in', 'ni'], acts: ['append', 'prepend', 'explode', 'focus'] },
+	array: { ops: ['find', 'in', 'ni', 'length'], acts: ['implode', 'stack', 'unstack','arrs2objs', 'focus'] },
 	object: { ops: [], acts: ['findCopy', 'focus', 'prioritize', 'rand', 'remove', 'rename'] },
-	boolean: { ops: ['eq', 'ne'], acts: [] },
+	boolean: { ops: ['eq', 'ne'], acts: ['focus'] },
 
 	// Extended Types Section - these are more narrowly-defined data types that build off of base types.
 	unixtime: { extends: 'number', ops: [], acts: [] },
@@ -416,12 +416,15 @@ var fnValidOperand=function(strOperand,strValue){
 
 	}
 	objActions.arrs2objs=function(objData,strPath,varVal){
+		//console.log(strPath,varVal,objData)
 		//convert an array of arrays to an array of objects
 		var arrOut=[];
 		if(objData[strPath].constructor === Array){
+			//console.log('arrrs2objs array found where expected');
 			for(var i=0;i<objData[strPath].length;i++){
 				//for each child array
 				if(objData[strPath][i].constructor === Array){
+					//console.log('arrrs2objs child array found where expected');
 					var objOut={};
 					//for each item in that child array
 					for(var ii=0;ii<objData[strPath][i].length;ii++){
@@ -431,8 +434,9 @@ var fnValidOperand=function(strOperand,strValue){
 				}
 			}
 		}
+		//console.log(objData,strPath,arrOut);
 		_.set(objData,strPath,arrOut);
-		//console.log(objData,strPath,arrOut)
+		
 		return objData;
 	}
 //----====|| OPERANDS ||====----\\
